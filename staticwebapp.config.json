@@ -1,20 +1,7 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/kidskeyboard/*", "*.{css,js,png,jpg,svg,ico,webp,woff,woff2}"]
-  },
-  "routes": [
-    {
-      "route": "/",
-      "redirect": "/kidskeyboard",
-      "statusCode": 302
-    }
-  ],
-  "responseOverrides": {
-    "404": {
-      "redirect": "/kidskeyboard",
-      "statusCode": 302
-    }
+    "exclude": ["*.{css,js,png,jpg,svg,ico,webp,woff,woff2}"]
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
