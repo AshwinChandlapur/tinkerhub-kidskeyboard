@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎹 Kids Keyboard!</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 45%, #0f3460 100%);
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', cursive;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      user-select: none;
+    }
+
+    /* Subtle starfield */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at  8% 12%, rgba(255,255,255,.55), transparent),
+        radial-gradient(1px 1px at 22% 48%, rgba(255,255,255,.45), transparent),
+        radial-gradient(2px 2px at 37% 22%, rgba(255,255,255,.65), transparent),
+        radial-gradient(1px 1px at 51% 67%, rgba(255,255,255,.40), transparent),
+        radial-gradient(2px 2px at 66% 35%, rgba(255,255,255,.55), transparent),
+        radial-gradient(1px 1px at 80% 75%, rgba(255,255,255,.50), transparent),
+        radial-gradient(1px 1px at 14% 82%, rgba(255,255,255,.40), transparent),
+        radial-gradient(2px 2px at 91% 14%, rgba(255,255,255,.60), transparent),
+        radial-gradient(1px 1px at 47% 90%, rgba(255,255,255,.45), transparent),
+        radial-gradient(1px 1px at 73% 55%, rgba(255,255,255,.50), transparent),
+        radial-gradient(2px 2px at 30% 70%, rgba(255,255,255,.35), transparent),
+        radial-gradient(1px 1px at 58% 08%, rgba(255,255,255,.60), transparent),
+        radial-gradient(1px 1px at 95% 45%, rgba(255,255,255,.45), transparent),
+        radial-gradient(2px 2px at  4% 55%, rgba(255,255,255,.50), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── START OVERLAY ────────────────────────────────────────────────────── */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      z-index: 999;
+    }
+
+    #overlay .ol-title {
+      font-size: clamp(2rem, 6vw, 4rem);
+      color: #fff;
+      text-shadow: 0 0 40px rgba(255,220,80,.9);
+      animation: float 2.5s ease-in-out infinite;
+      text-align: center;
+    }
+
+    #overlay .ol-sub {
+      color: rgba(255,255,255,.75);
+      font-size: clamp(.9rem, 2vw, 1.2rem);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    #start-btn {
+      margin-top: 8px;
+      background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+      color: #5a2d0c;
+      border: none;
+      padding: 16px 54px;
+      font-size: clamp(1.3rem, 3vw, 1.9rem);
+      border-radius: 50px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      letter-spacing: 3px;
+      box-shadow: 0 6px 30px rgba(253,160,133,.55), 0 0 0 4px rgba(246,211,101,.3);
+      transition: transform .12s, box-shadow .12s;
+    }
+    #start-btn:hover  { transform: translateY(-4px) scale(1.05); box-shadow: 0 14px 42px rgba(253,160,133,.65), 0 0 0 6px rgba(246,211,101,.4); }
+    #start-btn:active { transform: translateY(1px) scale(.97); }
+
+    /* ── HEADER ───────────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 28px;
+      background: rgba(255,255,255,.06);
+      border-bottom: 1.5px solid rgba(255,255,255,.12);
+      flex-shrink: 0;
+      z-index: 10;
+      position: relative;
+    }
+
+    .site-title {
+      font-size: clamp(1.1rem, 3vw, 1.8rem);
+      color: #fff;
+      text-shadow: 0 0 18px rgba(255,220,80,.7);
+      letter-spacing: 2px;
+    }
+
+    .counter-box {
+      background: rgba(255,255,255,.10);
+      border: 2px solid rgba(255,255,255,.22);
+      border-radius: 16px;
+      padding: 7px 24px;
+      text-align: center;
+      min-width: 115px;
+    }
+
+    .counter-label {
+      font-size: .78rem;
+      color: rgba(255,255,255,.60);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    #count {
+      display: block;
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 14px rgba(255,215,0,.65);
+      line-height: 1.15;
+    }
+
+    /* ── HINT BAR ─────────────────────────────────────────────────────────── */
+    #hint {
+      text-align: center;
+      color: rgba(255,255,255,.35);
+      font-size: .86rem;
+      padding: 4px 0;
+      letter-spacing: .3px;
+      flex-shrink: 0;
+      z-index: 10;
+      position: relative;
+    }
+
+    /* ── CANVAS ───────────────────────────────────────────────────────────── */
+    #canvas {
+      flex: 1;
+      display: block;
+      z-index: 5;
+      position: relative;
+      outline: none;
+    }
+
+    /* ── ANIMATIONS ───────────────────────────────────────────────────────── */
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-14px); }
+    }
+    @keyframes counterBump {
+      0%  { transform: scale(1); }
+      40% { transform: scale(1.35); }
+      100%{ transform: scale(1); }
+    }
+    .counter-box.bump { animation: counterBump .25s ease-out; }
+  </style>
+</head>
+<body>
+
+<!-- ── START OVERLAY ──────────────────────────────────────────────────────── -->
+<div id="overlay">
+  <div class="ol-title">🎹 Kids Keyboard! 🎵</div>
+  <div class="ol-sub">
+    Type letters &amp; numbers to play piano notes!<br>
+    <span style="opacity:.8">Special keys pop fun emoji &nbsp;🎉 ✨ 🚀 🌈</span>
+  </div>
+  <button id="start-btn" onclick="startApp()">▶ LET'S PLAY!</button>
+</div>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="site-title">🎹 Kids Keyboard!</div>
+  <div class="counter-box" id="counter-box">
+    <div class="counter-label">⌨️ Keystrokes</div>
+    <span id="count">0</span>
+  </div>
+</header>
+
+<!-- ── HINT ───────────────────────────────────────────────────────────────── -->
+<div id="hint">
+  Letters &amp; numbers → piano notes 🎵 &nbsp;·&nbsp; Special keys → emoji 🎉 &nbsp;·&nbsp; Keep typing!
+</div>
+
+<!-- ── CANVAS ─────────────────────────────────────────────────────────────── -->
+<canvas id="canvas" tabindex="0"></canvas>
+
+<script>
+'use strict';
+
+const canvas     = document.getElementById('canvas');
+const ctx        = canvas.getContext('2d');
+const countEl    = document.getElementById('count');
+const counterBox = document.getElementById('counter-box');
+
+let audioCtx        = null;
+let totalKeystrokes = 0;
+let particles       = [];
+let started         = false;
+
+// ── Note Frequencies (C major, 2 octaves — always sounds pleasant) ──────────
+const C_MAJOR_2OCT = [
+  261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88,  // C4–B4
+  523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77   // C5–B5
+];
+
+const DIGIT_NOTES = [
+  523.25, 587.33, 659.25, 698.46, 783.99,
+  880.00, 987.77, 1046.50, 1174.66, 1318.51
+];
+
+function getLetterFreq(ch) {
+  const idx = ch.toUpperCase().charCodeAt(0) - 65; // A=0 … Z=25
+  return C_MAJOR_2OCT[idx % C_MAJOR_2OCT.length];
+}
+
+function getDigitFreq(ch) {
+  return DIGIT_NOTES[parseInt(ch, 10)];
+}
+
+// ── Emoji Map ────────────────────────────────────────────────────────────────
+const EMOJI_MAP = {
+  '!':'🎉',  '@':'🎨',  '#':'⭐',  '$':'💰',  '%':'🎯',
+  '^':'🚀',  '&':'🤩',  '*':'✨',  '(':'😊',  ')':'😄',
+  '-':'🌈',  '_':'🐛',  '=':'⚡',  '+':'🌟',  '[':'📦',
+  ']':'🎁',  '{':'🎭',  '}':'🦄',  ';':'🎵',  ':':'❤️',
+  "'":'💬',  '"':'💭',  ',':'🌸',  '.':'🌺',  '/':'🎀',
+  '?':'🤔',  '<':'🐠',  '>':'🦋',  '~':'🌊',  '`':'💎',
+  '\\'  :'🌙',  '|':'🎋',  ' ':'🎈',
+  'Enter':'💥',  'Backspace':'💨',  'Tab':'🌀'
+};
+
+// ── Color palette ────────────────────────────────────────────────────────────
+const COLORS = [
+  '#FF6B6B','#FF8E53','#FFD93D','#6BCB77','#4D96FF',
+  '#C77DFF','#FF477E','#FF9F1C','#2EC4B6','#E9C46A',
+  '#F4A261','#E76F51','#A8DADC','#F72585','#43AA8B'
+];
+const randColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
+
+// ── Audio helpers ─────────────────────────────────────────────────────────────
+function ensureRunning() {
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+/**
+ * Piano-like tone: triangle fundamental + sine harmonics + low-pass filter.
+ * ADSR: very fast attack (~6 ms), quick decay, long release.
+ */
+function playPianoNote(freq) {
+  if (!audioCtx) return;
+  ensureRunning();
+  const now = audioCtx.currentTime;
+
+  const master = audioCtx.createGain();
+  const lpf    = audioCtx.createBiquadFilter();
+  lpf.type = 'lowpass';
+  lpf.frequency.value = 3200;
+
+  // Piano ADSR envelope
+  master.gain.setValueAtTime(0, now);
+  master.gain.linearRampToValueAtTime(0.50, now + 0.006);
+  master.gain.exponentialRampToValueAtTime(0.14, now + 0.13);
+  master.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+  master.connect(lpf);
+  lpf.connect(audioCtx.destination);
+
+  // Harmonic series
+  [
+    { type: 'triangle', mult: 1, vol: 1.00 },
+    { type: 'sine',     mult: 2, vol: 0.45 },
+    { type: 'sine',     mult: 3, vol: 0.18 },
+    { type: 'sine',     mult: 4, vol: 0.07 }
+  ].forEach(({ type, mult, vol }) => {
+    const osc = audioCtx.createOscillator();
+    const g   = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq * mult;
+    g.gain.value = vol;
+    osc.connect(g);
+    g.connect(master);
+    osc.start(now);
+    osc.stop(now + 1.5);
+  });
+}
+
+/** Short sparkle arpeggio for special / emoji keys. */
+function playSpecialSound() {
+  if (!audioCtx) return;
+  ensureRunning();
+  const now = audioCtx.currentTime;
+  [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const t    = now + i * 0.06;
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.22, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.40);
+  });
+}
+
+// ── Particle ──────────────────────────────────────────────────────────────────
+const MAX_PARTICLES = 120;
+
+class Particle {
+  constructor(text, isEmoji) {
+    this.text    = text;
+    this.isEmoji = isEmoji;
+
+    const pad  = 90;
+    this.x     = pad + Math.random() * Math.max(10, canvas.width  - pad * 2);
+    this.y     = canvas.height * 0.20 + Math.random() * canvas.height * 0.55;
+    this.color = randColor();
+    this.glow  = randColor();
+
+    this.fontSize = isEmoji ? 72 : 92;
+
+    // Spring pop animation state
+    this.scale = 0;
+    this.phase = 'pop'; // pop → hold → fade
+    this.frame = 0;
+
+    // Float physics
+    this.vx     = (Math.random() - 0.5) * 2.2;
+    this.vy     = -(1.1 + Math.random() * 1.8);
+    this.angVel = (Math.random() - 0.5) * 0.046;
+    this.angle  = (Math.random() - 0.5) * 0.28;
+
+    this.alpha = 1;
+  }
+
+  update() {
+    this.frame++;
+
+    if (this.phase === 'pop') {
+      // Overshoot spring:  0 → 1.28 → 1.0  over 12 frames
+      const t = Math.min(this.frame / 12, 1);
+      this.scale = t < 0.65
+        ? (t / 0.65) * 1.28
+        : 1.28 - ((t - 0.65) / 0.35) * 0.28;
+      if (t >= 1) { this.scale = 1; this.phase = 'hold'; this.frame = 0; }
+
+    } else if (this.phase === 'hold') {
+      this.y     += this.vy     * 0.35;
+      this.x     += this.vx     * 0.35;
+      this.angle += this.angVel * 0.35;
+      if (this.frame > 50) { this.phase = 'fade'; this.frame = 0; }
+
+    } else { // fade
+      this.alpha -= 0.020;
+      this.y     += this.vy;
+      this.x     += this.vx;
+      this.angle += this.angVel;
+    }
+
+    return this.alpha > 0;
+  }
+
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, this.alpha);
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+    ctx.scale(this.scale, this.scale);
+
+    if (this.isEmoji) {
+      ctx.font         = `${this.fontSize}px serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(this.text, 0, 0);
+    } else {
+      ctx.font         = `bold ${this.fontSize}px "Comic Sans MS","Chalkboard SE",cursive`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      // Glow
+      ctx.shadowColor = this.glow;
+      ctx.shadowBlur  = 24;
+      // White outline for readability
+      ctx.lineWidth   = 9;
+      ctx.lineJoin    = 'round';
+      ctx.strokeStyle = 'rgba(255,255,255,.92)';
+      ctx.strokeText(this.text, 0, 0);
+      // Colorful fill
+      ctx.fillStyle = this.color;
+      ctx.fillText(this.text, 0, 0);
+    }
+    ctx.restore();
+  }
+}
+
+// ── Canvas resize ─────────────────────────────────────────────────────────────
+function resizeCanvas() {
+  const hdr  = document.querySelector('header');
+  const hint = document.getElementById('hint');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight
+    - (hdr  ? hdr.offsetHeight  : 0)
+    - (hint ? hint.offsetHeight : 0);
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ── Animation loop ────────────────────────────────────────────────────────────
+function animate(timestamp) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Blinking "press any key" hint when the canvas is empty
+  if (started && particles.length === 0) {
+    const alpha = 0.28 + 0.18 * Math.sin(timestamp / 700);
+    ctx.save();
+    ctx.globalAlpha  = alpha;
+    ctx.fillStyle    = '#ffffff';
+    ctx.font         = 'bold 28px "Comic Sans MS",cursive';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎹  Press any key!  🎵', canvas.width / 2, canvas.height / 2);
+    ctx.restore();
+  }
+
+  particles = particles.filter(p => {
+    const alive = p.update();
+    if (alive) p.draw();
+    return alive;
+  });
+
+  requestAnimationFrame(animate);
+}
+
+// ── Counter with bump animation ───────────────────────────────────────────────
+function bumpCounter() {
+  totalKeystrokes++;
+  countEl.textContent = totalKeystrokes;
+  counterBox.classList.remove('bump');
+  void counterBox.offsetWidth;   // force reflow → restart CSS animation
+  counterBox.classList.add('bump');
+}
+
+// ── Keyboard handler ──────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (!started) return;
+
+  // Ignore modifier-key presses and browser shortcuts
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  if (['Control','Alt','Meta','Shift','CapsLock'].includes(e.key)) return;
+
+  // Prevent browser default for keys we handle
+  if ([' ','Tab','Backspace','Enter'].includes(e.key)) e.preventDefault();
+
+  const key = e.key;
+
+  if (/^[a-zA-Z]$/.test(key)) {
+    // ── Letter → piano note
+    playPianoNote(getLetterFreq(key));
+    if (particles.length < MAX_PARTICLES)
+      particles.push(new Particle(key.toUpperCase(), false));
+    bumpCounter();
+
+  } else if (/^[0-9]$/.test(key)) {
+    // ── Digit → piano note
+    playPianoNote(getDigitFreq(key));
+    if (particles.length < MAX_PARTICLES)
+      particles.push(new Particle(key, false));
+    bumpCounter();
+
+  } else if (EMOJI_MAP[key] !== undefined) {
+    // ── Special character → emoji + sparkle sound
+    playSpecialSound();
+    if (particles.length < MAX_PARTICLES)
+      particles.push(new Particle(EMOJI_MAP[key], true));
+    bumpCounter();
+
+  }
+  // Everything else (arrow keys, F-keys, etc.) → silently ignored
+});
+
+// ── Start (button click initialises AudioContext per browser policy) ──────────
+function startApp() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  document.getElementById('overlay').style.display = 'none';
+  started = true;
+  resizeCanvas();
+}
+
+// Bootstrap
+resizeCanvas();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

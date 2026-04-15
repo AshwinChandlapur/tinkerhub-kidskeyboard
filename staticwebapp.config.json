@@ -1,0 +1,26 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/kidskeyboard/*", "*.{css,js,png,jpg,svg,ico,webp,woff,woff2}"]
+  },
+  "routes": [
+    {
+      "route": "/",
+      "redirect": "/kidskeyboard",
+      "statusCode": 302
+    }
+  ],
+  "responseOverrides": {
+    "404": {
+      "redirect": "/kidskeyboard",
+      "statusCode": 302
+    }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "microphone=(), geolocation=()"
+  }
+}
